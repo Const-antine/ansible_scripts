@@ -1,0 +1,19 @@
+---
+- name: Create VM
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars_files:
+  - var
+
+  tasks:
+   - name: create router
+     gcp_compute_router:
+      name: nat-router2
+      network: selfLink=https://www.googleapis.com/compute/v1/projects/demo2ansible/global/networks/default
+      region: europe-west3
+      project: "{{ project_id }}"
+      auth_kind: serviceaccount
+      service_account_file: "{{ credentials_file }}"
+      state: present

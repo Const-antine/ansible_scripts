@@ -1,0 +1,27 @@
+---
+- name: Create VM
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars_files:
+  - var
+
+  tasks:
+   - name: create db instance
+     gcp_sql_instance: 
+      name: test6-db
+      database_version: POSTGRES_11
+      settings:
+       tier: db-custom-1-3840 
+      region: europe-west3 
+      auth_kind: serviceaccount 
+      service_account_file: "{{ credentials_file }}" 
+      project: "{{ project_id }}"
+      state: present
+
+   - name: disable public ip
+     shell: gcloud --project="{{ project_id }}" beta sql instances patch test6-db --network=default --no-assign-ip
+
+   - name: set password for database
+     shell: gcloud sql users set-password postgres --instance=test6-db --password=12345

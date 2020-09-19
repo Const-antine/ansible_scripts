@@ -1,0 +1,8 @@
+---
+
+service_account_email: account_here
+credentials_file: /home/constantine/ansible_gcp/some_file.json
+project_id: demo2ansible
+machine_type: n1-standard-1
+image: cos-stable
+

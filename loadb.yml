@@ -1,0 +1,21 @@
+---
+- name: Create VM
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars_files:
+  - var
+
+  tasks:
+   - name: Create gce load balancer
+     gce_lb:
+      name: testlb
+      region: europe-west3
+      members: ["europe-west3-c/docker-000","europe-west3-c/docker-001","europe-west3-c/docker-002"]
+      httphealthcheck_name: hc
+      httphealthcheck_port: 80
+      httphealthcheck_path: "/"
+      service_account_email: "{{ service_account_email }}"
+      credentials_file: "{{ credentials_file }}"
+      project_id: "{{ project_id }}"

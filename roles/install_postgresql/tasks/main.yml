@@ -1,0 +1,41 @@
+---
+# tasks file for install_postgresql
+- name: Ensure bash, OpenSSl, and libssl are the latest versions
+  apt: name={{ item }} update_cache=true state=latest
+  with_items:
+    - bash
+    - openssl
+    - libssl-dev
+    - libssl-doc
+  tags: packages
+
+- name: Install PostgreSQL
+  apt: name={{ item }} update_cache=true state=latest
+  with_items:
+    - postgresql
+    - postgresql-contrib
+    - libpq-dev
+    - python-psycopg2
+  tags: packages
+
+- name: Ensure the PostgreSQL service is running
+  service: name=postgresql state=started enabled=yes
+
+- name: add new configuration to "postgresql.conf"
+  blockinfile:
+    dest: /etc/postgresql/9.6/main/postgresql.conf
+    block: |
+      include 'server.conf'
+
+- name: add new configuration to "server.conf"
+  blockinfile:
+    create: yes
+    dest: /etc/postgresql/9.6/main/server.conf
+    block: |
+      listen_addresses = '*'
+
+- name: Create a new database with name "acme"
+  become: yes
+  become_user: postgres
+  postgresql_db:
+   name: acme

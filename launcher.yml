@@ -1,0 +1,45 @@
+---
+- name: Create VM
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars_files:
+  - var
+
+  tasks:
+   - name: Launch instances
+     gce:
+      base_name: docker
+      num_instances: 5
+      machine_type: "{{ machine_type }}"
+      image: "{{ image }}"
+      external_ip: none
+      service_account_email: "{{ service_account_email }}"
+      credentials_file: "{{ credentials_file }}"
+      project_id: "{{ project_id }}"
+      zone: europe-west3-c
+      tags: containers
+     register: gce
+
+   - name: Save hosts data
+     add_host:
+      hostname: "{{ item.private_ip }}"
+      groupname: gce_instaces_java
+     with_items: "{{ gce.instance_data }}"
+
+   - name: Wait for SSH for instances
+     wait_for:
+      delay: 10
+      host: "{{ item.private_ip }}"
+      port: 22
+      state: started
+      timeout: 30
+     with_items: "{{ gce.instance_data }}"
+
+- name: Configure Hosts
+  hosts: gce_instaces_java
+  become: yes
+  become_method: sudo
+  roles:
+   - apache

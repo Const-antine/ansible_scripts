@@ -1,0 +1,60 @@
+---
+# tasks file for docker
+- name: Install pip3
+  apt: name=python3-pip state=present
+
+- name: Install pip
+  apt: name=python-pip state=present
+
+- name: Install packages for apt add repository over HTTPS
+  become: yes
+  apt:
+    name: "{{ packagesdep }}"
+    force_apt_get: yes
+    state: latest
+    update_cache: yes
+  vars:
+    packagesdep:
+    - git
+    - apt-transport-https
+    - ca-certificates
+    - wget
+    - software-properties-common
+    - gnupg2
+    - curl
+
+- name: Add Docker GPG apt Key
+  apt_key:
+   url: https://download.docker.com/linux/debian/gpg
+   state: present
+  become: yes
+
+- name: Add Docker Repository
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/debian stretch stable
+    state: present
+  become: yes
+
+- name: Update apt and install docker-ce
+  apt: update_cache=yes name=docker-ce state=latest
+
+
+- name: Install Docker Module for Python
+  pip:
+    name: docker
+
+- name: Build Docker image from Dockerfile
+  docker_image:
+    name: web
+    path: docker
+    state: build
+
+- name: Running the container
+  docker_container:
+    image: web:latest
+    path: docker
+    state: running
+    published_ports: 1234:80
+
+- name: Check if container is running
+  shell: docker ps
